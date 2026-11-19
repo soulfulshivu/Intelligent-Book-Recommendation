@@ -1,0 +1,367 @@
+// ========================================
+// BOOKWISE - INTELLIGENT BOOK RECOMMENDER
+// ========================================
+
+// HTML Elements
+const input = document.getElementById('bookInput');
+const suggestions = document.getElementById('suggestions');
+const clearBtn = document.getElementById('clearBtn');
+const results = document.getElementById('results');
+const message = document.getElementById('message');
+const recommendBtn = document.getElementById('recommendBtn');
+
+
+// Recommendation Mode Descriptions
+const descriptions = {
+    hybrid: 'Combines book similarity with reader popularity.',
+    content: 'Finds books with similar titles, authors and publishers.',
+    collaborative: 'Finds books liked by readers with similar rating patterns.',
+    popularity: 'Shows books with the strongest reader activity.'
+};
+
+
+// Global Variables
+let selectedTitle = '';
+let selectedMode = 'hybrid';
+let timer;
+
+
+// ========================================
+// RECOMMENDATION MODE SELECTION
+// ========================================
+
+document.querySelectorAll('.mode').forEach(button => {
+
+    button.addEventListener('click', () => {
+
+        document.querySelectorAll('.mode').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        button.classList.add('active');
+
+        selectedMode = button.dataset.mode;
+
+        document.getElementById('modeDescription').textContent =
+            descriptions[selectedMode];
+
+    });
+
+});
+
+
+// ========================================
+// SEARCH BOOKS
+// ========================================
+
+input.addEventListener('input', () => {
+
+    selectedTitle = '';
+
+    clearBtn.classList.toggle('hidden', !input.value.trim());
+
+    clearTimeout(timer);
+
+    if (!input.value.trim()) {
+        suggestions.classList.remove('show');
+        suggestions.innerHTML = '';
+        return;
+    }
+
+    timer = setTimeout(async () => {
+
+        try {
+
+            const response = await fetch(
+                `/api/search?q=${encodeURIComponent(input.value.trim())}`
+            );
+
+            if (!response.ok) {
+                throw new Error('Search failed');
+            }
+
+            const books = await response.json();
+
+            if (books.length > 0) {
+
+                suggestions.innerHTML = books.map(book => `
+                    <div class="suggestion"
+                         data-title="${escapeHtml(book.title)}">
+
+                        <b>${escapeHtml(book.title)}</b>
+
+                        <small>${escapeHtml(book.author || 'Unknown author')}</small>
+
+                    </div>
+                `).join('');
+
+            } else {
+
+                suggestions.innerHTML = `
+                    <div class="suggestion">
+                        No matching books found.
+                    </div>
+                `;
+
+            }
+
+            suggestions.classList.add('show');
+
+            // Select a book from suggestions
+            suggestions.querySelectorAll('[data-title]').forEach(item => {
+
+                item.addEventListener('click', () => {
+
+                    selectedTitle = item.dataset.title;
+
+                    input.value = selectedTitle;
+
+                    suggestions.classList.remove('show');
+
+                });
+
+            });
+
+        } catch (error) {
+
+            suggestions.innerHTML = `
+                <div class="suggestion">
+                    Unable to search books. Please try again.
+                </div>
+            `;
+
+            suggestions.classList.add('show');
+
+            console.error(error);
+
+        }
+
+    }, 250);
+
+});
+
+
+// ========================================
+// CLEAR SEARCH
+// ========================================
+
+clearBtn.addEventListener('click', () => {
+
+    input.value = '';
+
+    selectedTitle = '';
+
+    clearBtn.classList.add('hidden');
+
+    suggestions.classList.remove('show');
+
+    suggestions.innerHTML = '';
+
+    input.focus();
+
+});
+
+
+// Hide suggestions when clicking outside
+document.addEventListener('click', event => {
+
+    if (!event.target.closest('.search-wrap')) {
+        suggestions.classList.remove('show');
+    }
+
+});
+
+
+// ========================================
+// RECOMMENDATION BUTTON
+// ========================================
+
+recommendBtn.addEventListener('click', loadRecommendations);
+
+
+async function loadRecommendations() {
+
+    // Check book selection
+    if (selectedMode !== 'popularity' && !selectedTitle) {
+
+        message.textContent =
+            'Please search for a book and select one of the suggestions first.';
+
+        message.style.display = 'block';
+
+        results.innerHTML = '';
+
+        return;
+
+    }
+
+
+    // Loading state
+    message.textContent = 'Finding the best books for you...';
+
+    message.style.display = 'block';
+
+    results.innerHTML = '';
+
+    recommendBtn.disabled = true;
+
+    recommendBtn.textContent = 'Finding books...';
+
+
+    try {
+
+        const url =
+            `/api/recommend?method=${selectedMode}&title=${encodeURIComponent(selectedTitle)}`;
+
+        const response = await fetch(url);
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Unable to get recommendations.');
+        }
+
+        const books = data.results || [];
+
+
+        // Update result heading
+        document.getElementById('resultTitle').textContent =
+            selectedMode === 'popularity'
+                ? 'Reader favourites'
+                : `Because you selected ${selectedTitle}`;
+
+
+        document.getElementById('resultCount').textContent =
+            `${books.length} BOOKS`;
+
+
+        // No recommendations found
+        if (!books.length) {
+
+            message.textContent =
+                'No recommendations found. Try another book or recommendation mode.';
+
+            message.style.display = 'block';
+
+            return;
+
+        }
+
+
+        // Hide loading message
+        message.style.display = 'none';
+
+
+        // Display Recommendation Cards
+        results.innerHTML = books.map(book => `
+
+            <article class="book-card">
+
+                <div class="book-cover">
+                    ${escapeHtml((book.title || 'B').charAt(0).toUpperCase())}
+                </div>
+
+                <h3>${escapeHtml(book.title || 'Untitled Book')}</h3>
+
+                <div class="author">
+                    By ${escapeHtml(book.author || 'Author not listed')}
+                </div>
+
+                <div class="meta">
+
+                    <span>
+                        ${escapeHtml(book.year || 'Year n/a')}
+                    </span>
+
+                    <span>
+                        ★ ${escapeHtml(book.average_rating || '—')}
+                    </span>
+
+                </div>
+
+                <div class="reason">
+                    ${escapeHtml(book.reason || 'Reader recommendation')}
+                </div>
+
+            </article>
+
+        `).join('');
+
+
+    } catch (error) {
+
+        message.textContent = error.message;
+
+        message.style.display = 'block';
+
+        console.error('Recommendation Error:', error);
+
+    } finally {
+
+        recommendBtn.disabled = false;
+
+        recommendBtn.innerHTML = 'Recommend books <span>→</span>';
+
+    }
+
+}
+
+
+// ========================================
+// HTML SECURITY FUNCTION
+// ========================================
+
+function escapeHtml(value) {
+
+    return String(value).replace(/[&<>"']/g, character => ({
+
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+
+    })[character]);
+
+}
+
+
+// ========================================
+// DATASET STATUS
+// ========================================
+
+async function loadDatasetStatus() {
+
+    const dataMode = document.getElementById('dataMode');
+
+    try {
+
+        const response = await fetch('/api/status');
+
+        if (!response.ok) {
+            throw new Error('Status unavailable');
+        }
+
+        const data = await response.json();
+
+        dataMode.textContent =
+            `${data.mode} · ${data.books} books loaded`;
+
+    } catch (error) {
+
+        dataMode.textContent = 'Dataset status unavailable';
+
+        console.error(error);
+
+    }
+
+}
+
+
+// Load dataset status when page opens
+loadDatasetStatus();
+
+
+// ========================================
+// END OF BOOKWISE JAVASCRIPT
+// ========================================
