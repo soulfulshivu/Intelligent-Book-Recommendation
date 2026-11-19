@@ -18,6 +18,9 @@ Intelligent-Library-Book-Recommendation/
 ├── Results
 ├── Requirements
 ├── .gitignore
+├── Prototype-CSS
+├── Prototype-HTML
+├── Prototype-JS
 └── README.md
 ```
 
