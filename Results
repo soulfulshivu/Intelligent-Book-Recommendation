@@ -1,0 +1,16 @@
+# Experimental results
+
+Run the notebook from top to bottom to generate the experimental outputs.
+
+The notebook produces:
+- Exploratory data-analysis charts.
+- Popularity-based book recommendations.
+- Content-based recommendations for a selected title.
+- Collaborative-filtering recommendations for a selected ISBN.
+- Hybrid recommendation rankings.
+- `model_evaluation_results.csv` with Precision@10, Recall@10, and HitRate@10 for
+  the popularity baseline and collaborative item-KNN holdout experiment.
+
+Do not fill in metric values until the notebook has been executed successfully on the
+chosen dataset. Save exported charts and the generated CSV here if you want to include
+them in the final GitHub submission.
