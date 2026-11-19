@@ -13,13 +13,10 @@ An intelligent Machine Learning-based book recommendation system using Popularit
 
 ```text
 Intelligent-Library-Book-Recommendation/
-├── notebooks/
-│   └── intelligent_library_book_recommendation.ipynb
-├── dataset/
-│   └── README.md
-├── results/
-│   └── README.md
-├── requirements.txt
+├── ml-project-intelligent-library-book-recommendation.ipynb
+├── archive.zip(datset)
+├── Results
+├── Requirements
 ├── .gitignore
 └── README.md
 ```
@@ -32,8 +29,7 @@ This notebook is designed for the Book-Crossing dataset, which contains three fi
 - `Users.csv` — user identifiers and optional demographic/location fields.
 - `Ratings.csv` — user identifier, ISBN, and book rating.
 
-The dataset is not included in this repository. See [`dataset/README.md`](dataset/README.md)
-for download and Kaggle setup instructions.
+The dataset is included in this repository. 
 
 ## Algorithms and methodology
 
