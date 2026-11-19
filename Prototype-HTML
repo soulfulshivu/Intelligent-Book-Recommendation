@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BookWise | Intelligent Book Recommender</title>
+
+    <!-- CSS Connection -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="nav">
+        <div class="brand">
+            <span class="brand-icon">B</span>
+            BookWise
+        </div>
+        <span class="nav-tag">INTELLIGENT LIBRARY</span>
+    </nav>
+
+    <main>
+
+        <!-- Hero Section -->
+        <section class="hero">
+
+            <div class="eyebrow">YOUR NEXT CHAPTER STARTS HERE</div>
+
+            <h1>
+                Find a book that
+                <br>
+                <em>feels like you.</em>
+            </h1>
+
+            <p class="sub">
+                Discover your next great read with machine-learning
+                powered recommendations.
+            </p>
+
+            <!-- Search Bar -->
+            <div class="search-wrap">
+
+                <span class="search-icon">⌕</span>
+
+                <input
+                    id="bookInput"
+                    type="text"
+                    placeholder="Search a book title or author..."
+                    autocomplete="off"
+                >
+
+                <button id="clearBtn" class="clear hidden" aria-label="Clear">
+                    ×
+                </button>
+
+                <div id="suggestions" class="suggestions"></div>
+
+            </div>
+
+            <div class="hint">
+                Try "Harry Potter", "Jane Austen" or "The Hobbit"
+            </div>
+
+        </section>
+
+
+        <!-- Recommendation Controls -->
+        <section class="controls">
+
+            <div>
+                <div class="section-label">RECOMMENDATION ENGINE</div>
+                <h2>Choose your discovery mode</h2>
+            </div>
+
+            <div class="mode-grid">
+
+                <button class="mode active" data-mode="hybrid">
+                    <span>✦</span>
+                    <b>Hybrid</b>
+                    <small>Best of both worlds</small>
+                </button>
+
+                <button class="mode" data-mode="content">
+                    <span>▧</span>
+                    <b>Content-based</b>
+                    <small>Similar books & authors</small>
+                </button>
+
+                <button class="mode" data-mode="collaborative">
+                    <span>◎</span>
+                    <b>Collaborative</b>
+                    <small>Reader taste patterns</small>
+                </button>
+
+                <button class="mode" data-mode="popularity">
+                    <span>↗</span>
+                    <b>Popular</b>
+                    <small>Reader favourites</small>
+                </button>
+
+            </div>
+
+            <div class="action-row">
+
+                <p id="modeDescription">
+                    Combines book similarity with reader popularity.
+                </p>
+
+                <button id="recommendBtn">
+                    Recommend books <span>→</span>
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- Recommendation Results -->
+        <section class="results-section">
+
+            <div class="results-heading">
+
+                <div>
+                    <div class="section-label">CURATED FOR YOU</div>
+                    <h2 id="resultTitle">A few good places to start</h2>
+                </div>
+
+                <span id="resultCount" class="count"></span>
+
+            </div>
+
+            <div id="message" class="message">
+                Choose a book above and select
+                <b>Recommend books</b> to see your personalised results.
+            </div>
+
+            <div id="results" class="book-grid"></div>
+
+        </section>
+
+
+        <!-- Footer -->
+        <footer>
+            <span>BOOKWISE · ML PROTOTYPE</span>
+            <span id="dataMode">Loading dataset…</span>
+        </footer>
+
+    </main>
+
+
+    <!-- JavaScript Connection -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+</body>
+</html>
