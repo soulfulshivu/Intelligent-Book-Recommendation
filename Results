@@ -14,3 +14,178 @@ The notebook produces:
 Do not fill in metric values until the notebook has been executed successfully on the
 chosen dataset. Save exported charts and the generated CSV here if you want to include
 them in the final GitHub submission.
+
+# Experimental Results – Intelligent Book Recommendation System
+
+## 1. Experimental Setup
+Implemented in Python in Kaggle using the Book Recommendation Dataset (`Books.csv`, `Users.csv`, `Ratings.csv`). Libraries include NumPy, Pandas, Matplotlib, Seaborn and scikit-learn. Four approaches were implemented: popularity-based, content-based, collaborative filtering and hybrid recommendation.
+
+## 2. Dataset Statistics
+
+| Dataset | Initial records | Columns |
+|---|---:|---:|
+| Books | 271,360 | 8 |
+| Users | 278,858 | 3 |
+| Ratings | 1,149,780 | 3 |
+
+Missing values reported before preprocessing:
+
+| Dataset | Column | Missing values |
+|---|---|---:|
+| Books | Book-Author | 2 |
+| Books | Publisher | 2 |
+| Books | Image-URL-L | 3 |
+| Users | Age | 110,762 |
+| Ratings | — | 0 |
+
+Preprocessing removed duplicate records, handled missing book identifiers and author/title values, filled missing publishers with `Unknown`, converted numeric columns, restricted publication years to 1000–2026 and ratings to 0–10, and removed duplicate ISBNs.
+
+| Processed data | Records |
+|---|---:|
+| Unique books | 266,726 |
+| Ratings | 1,149,780 |
+
+## 3. Rating Statistics
+
+| Statistic | Book-Rating |
+|---|---:|
+| Count | 1,149,780 |
+| Mean | 2.866950 |
+| Standard deviation | 3.854184 |
+| Minimum | 0 |
+| 25th percentile | 0 |
+| Median | 0 |
+| 75th percentile | 7 |
+| Maximum | 10 |
+
+Top ten most-rated ISBNs:
+
+| ISBN | Rating count |
+|---|---:|
+| 0971880107 | 2,502 |
+| 0316666343 | 1,295 |
+| 0385504209 | 883 |
+| 0060928336 | 732 |
+| 0312195516 | 723 |
+| 044023722X | 647 |
+| 0679781587 | 639 |
+| 0142001740 | 615 |
+| 067976402X | 614 |
+| 0671027360 | 586 |
+
+The most-rated book was **Wild Animus** by Rich Shapero (2,502 ratings; displayed average 1.019584). Other examples: *The Lovely Bones: A Novel* by Alice Sebold (1,295; 4.468726) and *The Da Vinci Code* by Dan Brown (883; 4.652322).
+
+## 4. Popularity-Based Recommendation
+
+The notebook filters for books with at least five ratings and sorts by rating count and average rating, both descending.
+
+| Book title | Author | Average rating | Rating count |
+|---|---|---:|---:|
+| Wild Animus | Rich Shapero | 1.019584 | 2,502 |
+| The Lovely Bones: A Novel | Alice Sebold | 4.468726 | 1,295 |
+| The Da Vinci Code | Dan Brown | 4.652322 | 883 |
+| Divine Secrets of the Ya-Ya Sisterhood: A Novel | Rebecca Wells | 3.448087 | 732 |
+| The Red Tent (Bestselling Backlist) | Anita Diamant | 4.334716 | 723 |
+| A Painted House | John Grisham | 3.187017 | 647 |
+| The Secret Life of Bees | Sue Monk Kidd | 4.219512 | 615 |
+| Snow Falling on Cedars | David Guterson | 3.255700 | 614 |
+| Angels & Demons | Dan Brown | 3.718430 | 586 |
+| Where the Heart Is (Oprah's Book Club Paperback) | Billie Letts | 4.105983 | 585 |
+
+## 5. Content-Based Filtering
+
+The text feature combines book title, author and publisher. TF-IDF was configured with English stop words removed and `max_features=5000`.
+
+| Output | Shape |
+|---|---:|
+| TF-IDF matrix | 266,726 × 5,000 |
+
+A Nearest Neighbors model used cosine distance and the brute-force algorithm.
+
+For the query **Harry Potter and the Chamber of Secrets**, the saved output included:
+- *Miriam's Kitchen: A Memoir* — Elizabeth Ehrlich
+- *In My Momma's Kitchen (Amistad)* — Jerdine Nolen
+- *Wordstruck: A Memoir* — Robert MacNeil
+- *More, Now, Again: A Memoir of Addiction* — Elizabeth Wurtzel
+- *Miriam's Song: A Memoir* — Mark Mathabane
+- *Balsamroot: A Memoir* — Mary Clearman Blew
+- *Modern Classics of Fantasy* — Gardner Dozois
+- *Modern Classics of Science Fiction* — Gardner Dozois
+
+These are transcribed from the notebook output; they are not a validated measure of semantic relevance.
+
+## 6. Collaborative Filtering
+
+The notebook retained positive ratings (`Book-Rating > 0`) whose ISBNs were present in the books table.
+
+| Processing stage | Rows |
+|---|---:|
+| Positive ratings matched with books | 378,035 |
+| After minimum book/user activity filters | 149,687 |
+
+Filters: at least 5 ratings per book and at least 3 ratings per user. Duplicate `(User-ID, ISBN)` pairs were removed, keeping the last record.
+
+| Matrix | Shape |
+|---|---:|
+| Sparse user-book matrix | 13,545 × 12,857 |
+
+The collaborative Nearest Neighbors model used cosine distance and brute-force search.
+
+For the first ISBN in the generated mapping, the notebook displayed:
+
+| ISBN | Book title | Author |
+|---|---|---|
+| 8804342838 | Due di due (Bestsellers) | Andrea De Carlo |
+| 3446153950 | Das Foucaultsche Pendel. | Umberto Eco |
+| 3446202692 | Eine Frau, Eine Wohnung, Ein Roman | Wilhelm Genazino |
+| 0020811853 | POSTCARDS | E. Annie Proulx |
+| 0877853134 | The Arrivals | Naomi Gladish Smith |
+
+## 7. Hybrid Recommendation
+
+The notebook calculates:
+
+`Hybrid-Score = 0.7 × Similarity + 0.3 × Popularity-Score`
+
+`Popularity-Score = Rating-Count / Maximum Rating-Count in book_popularity`
+
+For **Harry Potter and the Chamber of Secrets**, the saved output was:
+
+| Book title | Similarity | Rating count | Average rating shown | Hybrid score |
+|---|---:|---:|---:|---:|
+| Modern Classics of Fantasy | 1.000000 | 1 | 0.000000 | 0.700120 |
+| Miriam's Kitchen: A Memoir | 0.939026 | 5 | 7.800000 | 0.657918 |
+| Modern Classics of Science Fiction | 0.763672 | 2 | 0.000000 | 0.534810 |
+| Death of a Fantasy Life | 0.604200 | 1 | 0.000000 | 0.423060 |
+| On Modern Marriage and Other Observations | 0.578702 | 1 | 0.000000 | 0.405212 |
+| Tully | 0.568211 | 6 | 8.166667 | 0.398467 |
+| Interface Masque | 0.568211 | 2 | 0.000000 | 0.397988 |
+| Nightshades | 0.568211 | 2 | 0.000000 | 0.397988 |
+| Schedule Two (Schedule 2) | 0.568211 | 2 | 3.500000 | 0.397988 |
+| Regarding Roderer | 0.568211 | 1 | 0.000000 | 0.397868 |
+
+**Data-quality note:** The hybrid output displays average-rating values above the dataset's stated 0–10 scale (for example, 7.800000 and 8.166667), alongside zeros. These values are reproduced as printed, not endorsed as valid averages. Check the rating aggregation/merge pipeline and rerun before relying on this column.
+
+## 8. Model Comparison
+
+| Model | Technique |
+|---|---|
+| Popularity-Based | Rating count and average rating |
+| Content-Based | TF-IDF and KNN |
+| Collaborative Filtering | User-book matrix and KNN |
+| Hybrid Recommendation | Content similarity and popularity |
+
+The notebook's comparison bar chart assigns model index values 1–4. It is categorical illustration, not measured model performance.
+
+## 9. Generated Output
+
+The notebook exports the top 100 popularity-based recommendations to `book_recommendations.csv` in `/kaggle/working/` and prints `Recommendations saved successfully!`.
+
+## 10. Conclusion and Evaluation Limitations
+
+The experiment implemented four recommendation strategies and generated sample outputs. Popularity-based filtering ranks frequently rated books; content-based filtering uses TF-IDF book metadata; collaborative filtering uses a sparse user-book matrix; and the hybrid approach combines content similarity with popularity.
+
+The notebook does **not** calculate standard predictive or ranking metrics such as Precision@K, Recall@K, F1-score, MAP, NDCG or RMSE. No accuracy percentage or quantitative claim that one model outperforms another can therefore be made from these results. A future evaluation should use a held-out test set and ranking metrics such as Precision@K and Recall@K. The hybrid rating aggregation should also be checked.
+
+---
+*All numerical values and sample outputs above are transcribed from the uploaded notebook's saved outputs. Metrics not calculated by the notebook have not been invented.*
